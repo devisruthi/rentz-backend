@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/devisruthi/rentz-backend#readme",
   "dependencies": {
-    "express.js": "^1.0.0"
+    "express.js": "^1.0.0",
+    "mongoose": "^5.11.8"
   }
 }
