@@ -1,14 +1,33 @@
 // Import the main express file as a function
 const express = require('express');
+const cors = require('cors');
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const UserRoutes = require('./routes/UserRoutes');
+const passport = require('passport');
+const initPassportStrategy = require('./passport-config');
 
 // Invoke express
 const server = express();
+server.use(cors());
+server.use(bodyParser.urlencoded({
+    extended: false
+}));
+server.use(bodyParser.json());
 
-const dbString = "mongodb+srv://admin01:db12345@cluster0.kzgjt.mongodb.net/rentz?retryWrites=true&w=majority";
+// configure express to use passport
+server.use(passport.initialize());
+// configure passport to use passport-jwt
+initPassportStrategy(passport);
+
+//Connnect to db
+const dbString = "mongodb+srv://admin01:db12345@cluster0.kzgjt.mongodb.net/rentz?retryWrites=true&w=majority"
 
 mongoose
-    .connect(dbString, { useNewUrlParser: true, useUnifiedTopology: true })
+    .connect(dbString, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    })
     .then(
         () => {
             console.log('db is connected')
@@ -20,14 +39,23 @@ mongoose
         }
     )
 
+//User Routes
+server.use(
+    '/users',
+    UserRoutes
+)
 
+
+
+//Home Page
 server.get(
-    '/',
+    '/', // http://www.apple.com/
     (req, res) => {
-        res.send("index.html")
+        res.send("<h1>Welcome to Rentz</h1>")
     }
 );
 
+//All other routes
 server.get(
     '*',
     (req, res) => {
@@ -38,8 +66,8 @@ server.get(
 
 // Connects a port number on the server
 server.listen(
-    3001, 
-    ()=>{
+    3001,
+    () => {
         console.log('server is running on http://localhost:3001');
     }
 );
