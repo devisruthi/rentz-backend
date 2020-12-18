@@ -4,6 +4,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const UserRoutes = require('./routes/UserRoutes');
+const ProductRoutes = require('./routes/ProductRoutes');
 const passport = require('passport');
 const initPassportStrategy = require('./passport-config');
 
@@ -45,7 +46,11 @@ server.use(
     UserRoutes
 )
 
-
+//Product Routes
+server.use(
+    '/products',
+    ProductRoutes
+)
 
 //Home Page
 server.get(
