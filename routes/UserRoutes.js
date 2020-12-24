@@ -33,7 +33,7 @@ router.post(
 
                 // 2.1. If there is a match, reject the registration
                 if(document) {
-                    res.send({ message: "An account with that email already exists." })
+                    res.status(401).send({ message: "An account with that email already exists." })
                 }
 
                 // 2.2. If there is not match, proceed to Part (B)
@@ -56,13 +56,13 @@ router.post(
                                     .save()
                                     .then(
                                         (document) => {
-                                            res.send(document)
+                                            res.status(200).send(document)
                                         }
                                     )
                                     .catch(
-                                        (error) => {
+                                        (errorObj) => {
                                             console.log('error', error);
-                                            res.send({'error': error})
+                                            res.status(500).send({ message: "Something went wrong ", error : errorObj })
                                         }
                                     )
                                 }
@@ -73,8 +73,8 @@ router.post(
             }
         )
         .catch(
-            (err) => {
-                res.send({err: "Something went wrong."})
+            (errorObj) => {
+                res.status(500).send({ message: "Something went wrong ", error : errorObj })
             }
         )
     }
@@ -111,32 +111,32 @@ router.post(
                                 jsonwebtoken.sign(
                                     payload,
                                     jwtSecret,
-                                    (error, theToken) => {
+                                    (errorObj, theToken) => {
 
-                                        if(error) {
-                                            res.send({ message: "Something went wrong"})
+                                        if(errorObj) {
+                                            res.status(500).send({ message: "Something went wrong ", error : errorObj })
                                         }
 
                                         // 4. Send the json web token to the client
-                                        res.send({ theToken: theToken })
+                                        res.status(200).send({ theToken: theToken })
                                     }
                                 )
                             }
                             else {
                                 // 3.2 If password is incorrect, reject the login
-                                res.send({ message: "Wrong email or password"});
+                                res.status(401).send({ message: "Wrong email or password"});
                             }
                         }
                     )
                     .catch(
-                        (error) => {
-                            res.send({ message: "Something went wrong" })
+                        (errorObj) => {
+                            res.status(500).send({ message: "Something went wrong ", error : errorObj })
                         }
                     )
                 } 
                 else {
                     // 2.2 If no email match, reject the login
-                    res.send({ message: "Wrong email or password"});
+                    res.status(401).send({ message: "Wrong email or password"});
                 }
             }
         )
@@ -151,12 +151,13 @@ router.get(
         .then(
             (document) => {
                 console.log('user', document);
-                res.send(document);
+                res.status(200).send(document);
             }
         )
         .catch(
-            (error) => {
+            (errorObj) => {
                 console.log('error', error)
+                res.status(500).send({ message: "Something went wrong ", error : errorObj })
             }
         )
     }
@@ -170,14 +171,12 @@ router.get(
         .findById(req.user.id)
         .then(
             (document) => {
-                res.send(document)
+                res.status(200).send(document)
             }
         )
         .catch(
-            (error) => {
-                res.send({
-                    message: "error occured " + error
-                })
+            (errorObj) => {
+                res.status(500).send({ message: "Something went wrong ", error : errorObj })
             }
         )
 
