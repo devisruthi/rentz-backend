@@ -14,13 +14,9 @@ const ProductSchema = new mongoose.Schema({
         type: Number,
         required: false
     },
-    description: {
-        type: {
-            age: String,
-            dimension: String,
-            comments: String
-        },
-        required: false
+    summary: {
+        type: String,
+        required: true
     },
     images:{
         type: [String],
@@ -29,7 +25,11 @@ const ProductSchema = new mongoose.Schema({
     sellerEmail: {
         type: String,
         required: true
-    } 
+    },
+    available: {
+        type: Boolean,
+        required: true
+    }
 })
 
 const ProductModel = mongoose.model('products', ProductSchema);

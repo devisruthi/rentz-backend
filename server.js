@@ -7,6 +7,10 @@ const UserRoutes = require('./routes/UserRoutes');
 const ProductRoutes = require('./routes/ProductRoutes');
 const passport = require('passport');
 const initPassportStrategy = require('./passport-config');
+const cloudinary = require('cloudinary');
+const expressFormData = require('express-form-data');
+require('dotenv').config();
+
 
 // Invoke express
 const server = express();
@@ -21,8 +25,20 @@ server.use(passport.initialize());
 // configure passport to use passport-jwt
 initPassportStrategy(passport);
 
-//Connnect to db
-const dbString = "mongodb+srv://admin01:db12345@cluster0.kzgjt.mongodb.net/rentz?retryWrites=true&w=majority"
+// configure express to read file attachments
+server.use(expressFormData.parse());
+
+cloudinary.config(
+    {
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET
+    }
+)
+
+//Connect to db
+const dbString = process.env.DB_STRING;
+
 
 mongoose
     .connect(dbString, {
