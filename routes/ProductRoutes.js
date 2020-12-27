@@ -9,7 +9,7 @@ router.get(
     '/',
     (req, res) => {
         ProductModel
-            .find({ available: true })
+            .find()
             .then(
                 (document) => {
                     res.status(200).send(document);
@@ -24,6 +24,24 @@ router.get(
     }
 )
 
+router.get(
+    '/available',
+    (req, res) => {
+        ProductModel
+            .find({ available: true })
+            .then(
+                (document) => {
+                    res.status(200).send(document);
+                }
+            )
+            .catch(
+                (errorObj) => {
+                    console.log('error', errorObj);
+                    res.status(500).send({ message: "Something went wrong ", error: errorObj, errorCode: "RNPR001" });
+                }
+            )
+    }
+)
 
 
 router.post(
@@ -98,5 +116,92 @@ router.post(
 
     }
 )
+
+
+router.put(
+    '/sold/:id',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+
+        var productId = req.params.id;
+
+
+        UserModel
+            .findById(req.user.id)
+            .then(
+                (user) => {
+                    const authenticatedUserMail = user.email;
+
+                    ProductModel
+                        .update(
+                            { _id: productId, sellerEmail : authenticatedUserMail },
+                            {
+                                $set: {
+                                    available: false
+                                }
+                            },
+                            { new: true }
+                        )
+                        .then(
+                            (document) => {
+                                if (document.nModified = 1) {
+                                    res.status(200).send(document)
+                                }
+                                else {
+                                    console.log('Product not found for updationror');
+                                    res.status(401).send({ message: "Product not found with user for updation " })
+                                }
+                            }
+                        )
+                        .catch(
+                            (error) => {
+                                console.log('error', error);
+                                res.status(500).send({ message: "Something went wrong ", error: errorObj })
+                            }
+                        )
+                })
+            .catch(
+                (error) => {
+                    console.log('error', error);
+                    res.status(500).send({ message: "Something went wrong ", error: errorObj })
+                }
+            )
+
+
+    }
+)
+
+
+router.put(
+    '/setAvailable/:id',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+
+        var productId = req.params.id;
+
+        ProductModel
+            .findByIdAndUpdate(
+                productId,
+                {
+                    $set: {
+                        available: true
+                    }
+                },
+                { new: true }
+            )
+            .then(
+                (document) => {
+                    res.status(200).send(document)
+                }
+            )
+            .catch(
+                (error) => {
+                    console.log('error', error);
+                    res.status(500).send({ message: "Something went wrong ", error: errorObj })
+                }
+            )
+    }
+)
+
 
 module.exports = router;
