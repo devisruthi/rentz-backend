@@ -24,6 +24,10 @@ const UserSchema = new mongoose.Schema(
             type: String,
             required: false
         },
+        photoUrl: {
+            type: [],
+            required: false
+        },
         dateCreated: {
             type: Date,
             default: Date.now

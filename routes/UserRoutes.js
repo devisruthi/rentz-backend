@@ -4,6 +4,9 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jsonwebtoken = require('jsonwebtoken');
 const UserModel = require('../models/UserModel.js');
+
+const cloudinary = require('cloudinary').v2;
+
 require('dotenv').config();
 const jwtSecret = process.env.JWT_SECRET;
 
@@ -183,5 +186,120 @@ router.get(
 
     }
 )
+
+router.put(
+    '/update',           // users/update
+    passport.authenticate('jwt', {session: false}),
+    async (req, res) => {
+        const formData = {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email,
+            password: req.body.password,
+            photoUrl: req.body.photoUrl
+        };
+    
+        /*
+         * Here we check for (B) prepare password for registration, 
+         * and (C) upload image to Cloudinary if provided
+         */
+    
+        /* Part (C) */
+        // 1. Check if image is included
+        if(Object.values(req.files).length>0){
+            // 1.1 If included, upload to Cloudinary
+            const files = Object.values(req.files);
+            await cloudinary.uploader.upload(
+                // location of file
+                files[0].path, 
+                // callback for when file is uploaded
+                (errorObj, cloudinaryResult) => {
+                    if(errorObj) {
+                        console.log('error from cloudinary : ', errorObj);
+                        res.status(500).send({ message: "Something went wrong ", error : errorObj })
+                    }
+                    // 1.2 Take the image url and append it to newUserModel
+                    console.log(cloudinaryResult);
+                    formData.photoUrl  = cloudinaryResult.url;
+                }
+            )
+        }
+
+        
+        // If user wants password change 
+
+        if(formData.password.length > 0) {
+            /* Part (B) */
+            // 1. Generate a salt
+            bcrypt.genSalt(
+                (err, salt) => {
+
+                    // 2. Take salt and user's password to hash password
+                    bcrypt.hash(
+                        formData.password,
+                        salt,
+                        (err, encryptedPassword) => {
+                            // 4. Save to the database
+                            UserModel
+                            .findByIdAndUpdate(
+                                req.user.id,
+                                {
+                                    $set: {
+                                        firstName: formData.firstName,
+                                        lastName: formData.lastName,
+                                        email: formData.email,
+                                        password: encryptedPassword,
+                                        photoUrl: formData.photoUrl
+
+                                    }
+                                }
+                            )
+                            .then(
+                                (document) => {
+                                    res.status(200).send(document)
+                                }
+                            )
+                            .catch(
+                                (errorObj) => {
+                                    console.log('error', errorObj);
+                                    res.status(500).send({ message: "Something went wrong ", error : errorObj })
+                                }
+                            )
+                        }
+                    )
+                }
+            )
+        }
+
+        // If user does want password change
+        else {
+            UserModel
+            .findByIdAndUpdate(
+                req.user.id,
+                {
+                    $set: {
+                        firstName: formData.firstName,
+                        lastName: formData.lastName,
+                        email: formData.email,
+                        photoUrl: formData.photoUrl
+
+                    }
+                },
+                //{ new: true }
+            )
+            .then(
+                (document) => {
+                    res.status(200).send(document)
+                }
+            )
+            .catch(
+            (error) => {
+                console.log('error', error);
+                res.status(500).send({ message: "Something went wrong ", error : errorObj })
+            }
+        )
+        }
+    }
+);
 
 module.exports = router;
