@@ -43,6 +43,45 @@ router.get(
     }
 )
 
+router.get(
+    '/myProducts',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+        let loggedinUser = req.user.id;
+
+        UserModel
+            .findById(req.user.id)
+            .then(
+                (user) => {
+                    const authenticatedUserEmail = user.email;
+
+                    ProductModel
+                    .find({ available: true, sellerEmail : authenticatedUserEmail })
+                    .then(
+                        (document) => {
+                            res.status(200).send(document);
+                        }
+                    )
+                    .catch(
+                        (errorObj) => {
+                            console.log('error', errorObj);
+                            res.status(500).send({ message: "Something went wrong ", error: errorObj, errorCode: "RNPR001" });
+                        }
+                    )
+
+
+                })
+            .catch(
+                (error) => {
+                    console.log('error', error);
+                    res.status(500).send({ message: "Something went wrong ", error: errorObj })
+                }
+            )
+
+
+    }
+)
+
 
 router.post(
     '/',
@@ -133,8 +172,8 @@ router.put(
                     const authenticatedUserMail = user.email;
 
                     ProductModel
-                        .update(
-                            { _id: productId, sellerEmail : authenticatedUserMail },
+                        .findOneAndUpdate(
+                            { _id: productId, sellerEmail: authenticatedUserMail },
                             {
                                 $set: {
                                     available: false
